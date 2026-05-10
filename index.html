@@ -2085,8 +2085,21 @@
     }
   }, loadingTimeout);
 
+  const EMAILS_AUTORISES = [
+    'samueljartel14@gmail.com',
+    'christopher.legouge05@gmail.com',
+  ];
+
   supa.auth.onAuthStateChange(async (event, session) => {
     if (session?.user) {
+      const email = session.user.email || '';
+      if (!EMAILS_AUTORISES.includes(email.toLowerCase())) {
+        await supa.auth.signOut();
+        hideLoading();
+        document.getElementById('login-page').style.display = 'flex';
+        showLoginError('Accès refusé. Votre compte n\'est pas autorisé.');
+        return;
+      }
       currentUser = session.user;
       // Charger ou créer le profil
       const { data: profil } = await supa.from('users').select('*').eq('id', currentUser.id).single();
@@ -2269,6 +2282,10 @@
     const email = document.getElementById('email').value.trim();
     const pass  = document.getElementById('password').value.trim();
     if (!email || !pass) { showLoginError('Veuillez remplir tous les champs.'); return; }
+    if (!EMAILS_AUTORISES.includes(email.toLowerCase())) {
+      showLoginError('Accès refusé. Ce compte n\'est pas autorisé.');
+      return;
+    }
 
     const btn = document.querySelector('.btn-login');
     btn.textContent = 'Connexion...';
